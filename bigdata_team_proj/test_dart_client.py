@@ -1,10 +1,7 @@
 # test_dart_client.py
 """
-팀원이 만든 DartClient가
 1) 공시 목록(list_reports)
-2) 재무제표(get_finstat)
-
-를 잘 가져오는지 테스트하는 스크립트.
+2) 재무제표(get_finstat) 를 잘 가져오는지 테스트하는 스크립트
 """
 
 from src.data_ingestion.dart_client import DartClient
@@ -21,12 +18,12 @@ def test_list_reports():
         bgn_de="20240101",   # 2024년 1월 1일부터
         end_de="",
         page_count=100,
-        regular_only=True,   # 👈 정기공시 + 사업/반기/분기만
+        regular_only=True,   # 정기공시 + 사업/반기/분기만
     )
 
     print("\n[삼성전자 최근 공시 목록 테스트]")
     if not reports:
-        print("  => 공시가 한 건도 안 나왔어요. 파라미터(bgn_de, end_de)를 확인해보세요.")
+        print("  => 공시가 한 건도 안 나옴. 파라미터(bgn_de, end_de)를 확인 요망.")
         return
 
     for item in reports:
@@ -64,3 +61,4 @@ def test_get_finstat():
 if __name__ == "__main__":
     test_list_reports()
     test_get_finstat()
+
