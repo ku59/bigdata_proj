@@ -20,6 +20,7 @@
 
 
 
+## 2. 폴더 구조
 - bigdata_team_proj/
 - ├─ README.md
 - ├─ .gitignore
@@ -83,6 +84,6 @@
 - │  └─ test_agent_workflow.py
 - │
 - └─ docs/
-   ├─ architecture.md         # 시스템 구조 설명
-   ├─ api_design.md           # 내부 모듈/함수 설명
-   └─ demo_scenarios.md       # 데모용 예시 질의/응답 시나리오
+-  ├─ architecture.md         # 시스템 구조 설명
+-  ├─ api_design.md           # 내부 모듈/함수 설명
+-  └─ demo_scenarios.md       # 데모용 예시 질의/응답 시나리오
