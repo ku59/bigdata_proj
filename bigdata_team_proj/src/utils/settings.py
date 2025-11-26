@@ -2,11 +2,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # Google Gemini
-    GOOGLE_API_KEY: str | None = None
+    GOOGLE_API_KEY: str
     GEMINI_MODEL_NAME: str = "gemini-2.5-flash"
 
     # DART / NAVER
-    DART_API_KEY: str
+    DART_API_KEY: str = "dd86489dc31f8aadc2a245bcdd92586dc9a5fd2a"
     NAVER_CLIENT_ID: str
     NAVER_CLIENT_SECRET: str
 
