@@ -1,0 +1,25 @@
+# core
+python-dotenv
+pydantic>=2.0
+requests
+pandas
+
+# search
+elasticsearch>=8.0.0
+chromadb
+
+# llm / rag
+langchain
+langgraph
+langchain-google-genai   # Gemini용 LangChain 어댑터
+# google-genai           # 필요 시 순수 SDK 쓸 때만 활성화
+
+# embedding
+sentence-transformers
+
+# web ui
+streamlit
+
+# etc
+tqdm
+
