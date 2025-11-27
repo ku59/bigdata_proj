@@ -12,9 +12,13 @@ from src.utils.settings import settings
 class AgentState(TypedDict):
     question: str
     company: str | None
+    corp_code: str | None
+    stock_code: str | None
     retrieved_docs: List[Dict[str, Any]]
     answer: str | None
     route: Literal["general", "company"] | None
+    briefing_year: str | None
+    briefing_year_mode: Literal["latest", "selected"] | None
 
 
 def route_intent(state: AgentState) -> AgentState:
@@ -36,8 +40,18 @@ def retrieve_evidence(state: AgentState) -> AgentState:
     query = state["question"]
     if state.get("company"):
         query = f"{state['company']} {query}"
+    byear = state.get("briefing_year")
+    if byear:
+        # 연도를 쿼리에 반영하여 해당 연도의 근거 문서 검색을 강화
+        query = f"{query} {byear}년"
 
-    docs = tool_hybrid_search(query=query, k=8)
+    docs = tool_hybrid_search(
+        query=query,
+        k=8,
+        corp_code=state.get("corp_code"),
+        stock_code=state.get("stock_code"),
+        year=state.get("briefing_year"),
+    )
     state["retrieved_docs"] = docs
     return state
 
@@ -51,6 +65,7 @@ def generate_answer(state: AgentState) -> AgentState:
 
     docs = state.get("retrieved_docs", [])
     company = state.get("company")
+    byear = state.get("briefing_year")
 
     context_lines = []
     for d in docs[:8]:
@@ -66,7 +81,8 @@ def generate_answer(state: AgentState) -> AgentState:
     user = HumanMessage(
         content=(
             f"질문: {question}\n"
-            f"회사: {company or '미지정'}\n\n"
+            f"회사: {company or '미지정'}\n"
+            f"브리핑 기준 연도: {byear or '미지정'}\n\n"
             f"다음은 검색으로 찾은 근거 문서입니다:\n{context}\n\n"
             "이 근거를 기반으로 투자 분석 보고서를 작성하세요."
         )
@@ -91,4 +107,3 @@ def build_workflow():
 
     compiled = graph.compile()
     return compiled
-

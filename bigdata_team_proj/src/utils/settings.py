@@ -1,3 +1,4 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -17,8 +18,10 @@ class Settings(BaseSettings):
     # Vector DB
     VECTOR_DB_DIR: str = "./data/vectorstore"
 
+    # Resolve .env path relative to project root (bigdata_team_proj/.env)
+    _ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_ENV_PATH,
         env_file_encoding="utf-8",
     )
 

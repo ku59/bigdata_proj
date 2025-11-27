@@ -120,6 +120,28 @@ def extract_key_metrics(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Optio
 
 
 # -----------------------------
+# normalize_finstat_rows: DART rows -> 최신(business term) 지표 요약으로 변환
+# -----------------------------
+def normalize_finstat_rows(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    DART 재무제표 rows(list[dict])에서 extract_key_metrics로 핵심 지표를 뽑고,
+    그 중 '당기(th)' 값을 간단 요약(dict)으로 반환.
+    """
+    metrics = extract_key_metrics(rows)
+
+    def pick(name: str):
+        return metrics.get(name, {}).get("th")
+
+    return {
+        "assets": pick("assets"),
+        "liabilities": pick("liabilities"),
+        "equity": pick("equity"),
+        "revenue": pick("revenue"),
+        "operating_income": pick("operating_income"),
+        "net_income": pick("net_income"),
+    }
+
+# -----------------------------
 # 2) ES / 벡터 DB에 넣기 좋은 문서 변환 함수
 # -----------------------------
 def build_finstat_document(
