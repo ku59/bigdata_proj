@@ -24,3 +24,11 @@ streamlit
 # etc
 tqdm
 
+requests
+PyYAML
+chromadb
+sentence-transformers
+numpy
+torch
+transformers
+tqdm

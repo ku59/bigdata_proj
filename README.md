@@ -32,7 +32,7 @@
 - │  ├─ processed/             # 전처리된 텍스트, json 등
 - │  └─ samples/               # 데모용 샘플 데이터 (작은 사이즈만 git에 포함)
 - │
-- ├─ configs/
+- ├─ config/
 - │  ├─ elasticsearch.yaml     # ES 인덱스 설정, 매핑 등
 - │  ├─ vectordb.yaml          # 벡터 DB 설정
 - │  └─ agent_config.yaml      # 에이전트/워크플로우 파라미터

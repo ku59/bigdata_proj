@@ -1,0 +1,4 @@
+es_url: "http://localhost:9200/news_index/_bulk"
+username: "jihun572"
+password: "jihun572"
+index_name: "news_index"

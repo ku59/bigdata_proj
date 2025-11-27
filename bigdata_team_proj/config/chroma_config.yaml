@@ -1,0 +1,3 @@
+chroma_dir: "./chroma_news_db"
+collection_name: "news_collection"
+metric: "cosine"
