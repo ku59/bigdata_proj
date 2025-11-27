@@ -20,6 +20,8 @@ sentence-transformers
 
 # web ui
 streamlit
+fastapi
+uvicorn
 
 # etc
 tqdm
