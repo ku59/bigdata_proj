@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List, Optional
 
 from src.data_ingestion.dart_client import DartClient
@@ -5,6 +6,8 @@ from src.data_ingestion.dart_parsers import normalize_finstat_rows
 from src.data_ingestion.news_client import NaverNewsClient
 from src.retrieval.hybrid_retriever import HybridRetriever
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 def tool_get_latest_finstat(
     corp_code: str,
@@ -16,8 +19,10 @@ def tool_get_latest_finstat(
     단일 연도/보고서 기준 재무 요약(th) 반환.
     기존 함수와 동일 목적이나 reprt_code/fs_div 선택 가능하도록 확장.
     """
+    
     dart = DartClient()
     fin = dart.get_finstat(corp_code=corp_code, bsns_year=year, reprt_code=reprt_code, fs_div=fs_div)
+    
     rows = fin.get("list", [])
     return normalize_finstat_rows(rows)
 

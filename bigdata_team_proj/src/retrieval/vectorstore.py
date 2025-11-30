@@ -1,51 +1,44 @@
-from pathlib import Path
 from typing import Any, Dict, List
 
-import chromadb
-from chromadb.config import Settings as ChromaSettings
+import numpy as np
 from sentence_transformers import SentenceTransformer
-
-from src.utils.settings import settings
 
 
 class VectorStore:
-    def __init__(self) -> None:
-        persist_dir = Path(settings.VECTOR_DB_DIR)
-        persist_dir.mkdir(parents=True, exist_ok=True)
+    """
+    더 이상 ChromaDB를 사용하지 않는 단순 in-memory 벡터 스토어입니다.
+    현재 프로젝트 흐름에서는 사용하지 않지만, 기존 인터페이스 호환을 위해 남겨 둔 구현입니다.
+    """
 
-        self.client = chromadb.PersistentClient(
-            path=str(persist_dir),
-            settings=ChromaSettings(allow_reset=True),
-        )
-        self.collection = self.client.get_or_create_collection("company_corpus")
+    def __init__(self) -> None:
         self.encoder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        self._docs: List[Dict[str, Any]] = []
+        self._embeddings: np.ndarray | None = None
 
     def index_docs(self, docs: List[Dict[str, Any]]) -> None:
-        texts = [d["text"] for d in docs]
-        ids = [str(i) for i in range(len(texts))]
-        embeddings = self.encoder.encode(texts, show_progress_bar=True)
-        metadatas = [
-            {k: v for k, v in d.items() if k != "text"}
-            for d in docs
-        ]
-        self.collection.add(ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)
+        self._docs = docs
+        texts = [d.get("text", "") for d in docs]
+        emb = self.encoder.encode(texts, show_progress_bar=True)
+        self._embeddings = np.asarray(emb, dtype="float32")
 
     def search(self, query: str, k: int = 20) -> List[Dict[str, Any]]:
-        emb = self.encoder.encode([query])[0]
-        res = self.collection.query(
-            query_embeddings=[emb],
-            n_results=k,
-        )
+        if self._embeddings is None or not self._docs:
+            return []
+
+        q_vec = self.encoder.encode([query])[0].astype("float32")
+        # cosine similarity
+        doc_norms = np.linalg.norm(self._embeddings, axis=1)
+        q_norm = np.linalg.norm(q_vec)
+        denom = (doc_norms * q_norm) + 1e-8
+        sims = (self._embeddings @ q_vec) / denom
+
+        idx = np.argsort(-sims)[:k]
         results: List[Dict[str, Any]] = []
-        for doc, meta, dist in zip(
-            res.get("documents", [[]])[0],
-            res.get("metadatas", [[]])[0],
-            res.get("distances", [[]])[0],
-        ):
+        for i in idx:
             results.append(
                 {
-                    "score": 1.0 - dist,  # cosine distance -> similarity 대략 변환
-                    "doc": {**meta, "text": doc},
+                    "score": float(sims[i]),
+                    "doc": self._docs[i],
                 }
             )
         return results

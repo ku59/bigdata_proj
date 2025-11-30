@@ -12,8 +12,11 @@ class Settings(BaseSettings):
     NAVER_CLIENT_SECRET: str
 
     # Search
-    ELASTICSEARCH_HOST: str = "http://localhost:9200"
-    ELASTICSEARCH_INDEX: str = "company_corpus"
+    ELASTICSEARCH_HOST: str = "https://my-elasticsearch-project-af077a.es.ap-southeast-1.aws.elastic.cloud:443"
+    #ELASTICSEARCH_INDEX: str = "news_index"
+    ELASTICSEARCH_NEWS_INDEX: str = "news_index"
+    ELASTICSEARCH_FINSTAT_INDEX: str = "finstat_index"
+    ELASTICSEARCH_API_KEY: str = "d1Z1cXlab0JiekdfQVZmYnNnaGc6aWNIVkExNl9HX2RacF9NNXJ5djdKZw=="
 
     # Vector DB
     VECTOR_DB_DIR: str = "./data/vectorstore"
