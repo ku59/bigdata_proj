@@ -19,7 +19,6 @@
 한마디로 **“DART + 뉴스 기반 기업 분석 요약 봇”** 을 만드는 프로젝트입니다.
 
 
-
 ## 2. 폴더 구조
 - bigdata_team_proj/
 - ├─ README.md
@@ -71,12 +70,6 @@
 - │     ├─ logging_utils.py    # 로그 설정
 - │     ├─ settings.py         # .env 읽어서 설정 관리
 - │     └─ formatting.py       # 금액 콤마, 조 단위 표시 등 포맷 함수
-- │
-- ├─ notebooks/
-- │  ├─ 01_dart_api_test.ipynb          # DART API 실험용
-- │  ├─ 02_news_api_test.ipynb          # 뉴스 API 실험용
-- │  ├─ 03_embedding_vector_test.ipynb  # 임베딩/벡터 검색 실험
-- │  └─ 99_sandbox.ipynb                # 자유 실험
 - │
 - ├─ tests/
 - │  ├─ test_dart_client.py
