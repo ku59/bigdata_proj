@@ -40,28 +40,28 @@
 - ├─ src/
 - │  ├─ __init__.py
 - │  │
-- │  ├─ data_ingestion/        # (A 담당) DART/뉴스 수집 모듈
+- │  ├─ data_ingestion/        # DART/뉴스 수집 모듈
 - │  │  ├─ __init__.py
 - │  │  ├─ dart_client.py      # DART API 호출 (공시목록, 재무제표)
 - │  │  ├─ dart_parsers.py     # 공시/재무제표 파싱, 정제
 - │  │  ├─ news_client.py      # 네이버/구글 뉴스 API 호출
 - │  │  └─ build_corpus.py     # ES/벡터DB에 넣을 corpus 생성 스크립트
 - │  │
-- │  ├─ retrieval/             # (B 담당) ES + 벡터DB 검색 모듈
+- │  ├─ retrieval/             # ES + 벡터DB 검색 모듈
 - │  │  ├─ __init__.py
 - │  │  ├─ es_client.py        # ElasticSearch 연결, 인덱스 생성/검색
 - │  │  ├─ vectorstore.py      # 벡터DB(Chroma, ES dense 등) 래퍼
 - │  │  ├─ hybrid_retriever.py # BM25 + Embedding 결합 로직
 - │  │  └─ indexing.py         # 문서 색인 스크립트
 - │  │
-- │  ├─ agent/                 # (C 담당) LangChain / LangGraph 에이전트
+- │  ├─ agent/                 # LangChain / LangGraph 에이전트
 - │  │  ├─ __init__.py
 - │  │  ├─ tools.py            # DART, 뉴스, 검색 등을 Tool로 래핑
 - │  │  ├─ prompts.py          # 시스템/에이전트 프롬프트 정의
 - │  │  ├─ workflow_graph.py   # LangGraph 워크플로우 정의
 - │  │  └─ run_agent.py        # CLI에서 에이전트 테스트용 엔트리 포인트
 - │  │
-- │  ├─ app/                   # (D 담당) Streamlit / FastAPI 등 UI
+- │  ├─ app/                   # Streamlit / FastAPI 등 UI
 - │  │  ├─ __init__.py
 - │  │  ├─ main_app.py         # Streamlit 메인 앱
 - │  │  └─ components.py       # 차트, 표, 카드 UI 컴포넌트
@@ -83,7 +83,6 @@
 - │  ├─ test_retriever.py
 - │  └─ test_agent_workflow.py
 - │
-- └─ docs/
--  ├─ architecture.md         # 시스템 구조 설명
--  ├─ api_design.md           # 내부 모듈/함수 설명
--  └─ demo_scenarios.md       # 데모용 예시 질의/응답 시나리오
+- ├─ docs/
+- │  └─  worklog_ui_news_dart.md         # UI 고도화 및 데이터 조회/뉴스 중복 제거 작업 내역
+
