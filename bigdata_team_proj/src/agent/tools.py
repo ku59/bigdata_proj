@@ -68,6 +68,7 @@ def tool_search_news(
     네이버 뉴스 검색(중복 제거 포함).
     기존 단순 검색을 중복 제거(search_dedup)로 대체하고 파라미터 확장.
     """
+    logger.info(f"[tool_search_news] called corp_name={corp_name}, limit={limit}") 
     client = NaverNewsClient()
     items = client.search_dedup(
         query=corp_name,
@@ -86,22 +87,24 @@ def tool_hybrid_search(
     stock_code: Optional[str] = None,
     year: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """
-    하이브리드 검색(ES + 벡터) 수행.
-    - corp_code: DART 공시 고유코드(예: 00126380)
-    - stock_code: 주식 코드(예: 005930)
-    - year: 문서 연도(예: '2024')
-    회사 코드(둘 중 하나)와 연도를 전달하면 ES 필터 및 VS 메타 필터로 해당 회사/연도 근거를 우선 확보한다.
-    """
     retriever = HybridRetriever(alpha=0.6)
-    docs = retriever.retrieve(query, k=k, corp_code=corp_code, stock_code=stock_code, year=year)
-    return [
-        {
-            "text": d.text,
-            "metadata": d.metadata,
-            "hybrid_score": d.hybrid_score,
-            "sparse_score": d.sparse_score,
-            "dense_score": d.dense_score,
-        }
-        for d in docs
-    ]
+    docs = retriever.retrieve(
+        query, k=k, corp_code=None, stock_code=None, year=None
+    )
+
+    results: List[Dict[str, Any]] = []
+    for d in docs:
+        # LangChain Document 기준: 본문은 page_content에 있음
+        text = getattr(d, "text", None) or getattr(d, "page_content", "")
+        meta = getattr(d, "metadata", {}) or {}
+        results.append(
+            {
+                "text": text,
+                "metadata": meta,
+                "hybrid_score": getattr(d, "hybrid_score", None),
+                "sparse_score": getattr(d, "sparse_score", None),
+                "dense_score": getattr(d, "dense_score", None),
+            }
+        )
+    return results
+

@@ -180,7 +180,7 @@ def call_tools(state: AgentState) -> AgentState:
     ReAct의 Acting 단계: 선택된 도구를 실행하고 결과를 반환
     """
     last_message = state["messages"][-1]
-    
+
     # 데이터 소스 추적 정보 초기화
     if not state.get("data_sources"):
         state["data_sources"] = {
@@ -190,14 +190,13 @@ def call_tools(state: AgentState) -> AgentState:
             "naver_news_count": 0,
             "naver_news_detail": [],
         }
-    
-    outputs = []
-    
+
+    outputs: List[ToolMessage] = []
+
     for tool_call in last_message.tool_calls:
         tool_name = tool_call["name"]
         tool_args = tool_call["args"]
-        
-        # 도구 실행
+
         try:
             # 도구별로 상태 정보 자동 주입
             if tool_name == "search_documents":
@@ -207,31 +206,35 @@ def call_tools(state: AgentState) -> AgentState:
                     tool_args["stock_code"] = state["stock_code"]
                 if not tool_args.get("year") and state.get("briefing_year"):
                     tool_args["year"] = state["briefing_year"]
-                
+
                 result = tools_by_name[tool_name].invoke(tool_args)
-                
+
                 # 상태 업데이트
                 state["retrieved_docs"] = result
                 state["data_sources"]["es_docs_count"] = len(result)
+                # 상위 8개 문서 메타 정보 저장
+                state["data_sources"]["es_docs_detail"] = []  # 새로 채우기
                 for i, doc in enumerate(result[:8], 1):
                     meta = doc.get("metadata", {})
-                    state["data_sources"]["es_docs_detail"].append({
-                        "index": i,
-                        "source": meta.get("source", "unknown"),
-                        "year": meta.get("year", ""),
-                        "company": meta.get("company_name", ""),
-                        "text_preview": doc['text'][:100],
-                        "hybrid_score": doc.get("hybrid_score", 0),
-                    })
-            
+                    state["data_sources"]["es_docs_detail"].append(
+                        {
+                            "index": i,
+                            "source": meta.get("source", "unknown"),
+                            "year": meta.get("year", ""),
+                            "company": meta.get("company_name", ""),
+                            "text_preview": doc.get("text", "")[:100],
+                            "hybrid_score": doc.get("hybrid_score", 0),
+                        }
+                    )
+
             elif tool_name == "get_financial_data":
                 if not tool_args.get("corp_code") and state.get("corp_code"):
                     tool_args["corp_code"] = state["corp_code"]
                 if not tool_args.get("year") and state.get("briefing_year"):
                     tool_args["year"] = state["briefing_year"]
-                
+
                 result = tools_by_name[tool_name].invoke(tool_args)
-                
+
                 # 상태 업데이트
                 state["financial"] = result
                 if result:
@@ -244,37 +247,44 @@ def call_tools(state: AgentState) -> AgentState:
                         "operating_income": result.get("operating_income"),
                         "net_income": result.get("net_income"),
                     }
-            
+
             elif tool_name == "search_company_news":
                 if not tool_args.get("corp_name") and state.get("company"):
                     tool_args["corp_name"] = state["company"]
-                
+
                 result = tools_by_name[tool_name].invoke(tool_args)
-                
-                # 상태 업데이트
+
+                # 만약 tool_search_news가 dict를 반환한다면 여기서 items만 꺼내는 것도 고려
+                # 예: items = result.get("items", result)
+                # 지금은 result가 이미 뉴스 리스트라고 가정
                 state["news_items"] = result
                 state["data_sources"]["naver_news_count"] = len(result)
+
+                state["data_sources"]["naver_news_detail"] = []  # 새로 채우기
                 for i, item in enumerate(result[:5], 1):
-                    state["data_sources"]["naver_news_detail"].append({
-                        "index": i,
-                        "title": item.get("title", ""),
-                        "pub_date": item.get("pubDate", ""),
-                        "description": item.get("description_clean", "")[:200],
-                        "link": item.get("link", ""),
-                    })
-            
+                    state["data_sources"]["naver_news_detail"].append(
+                        {
+                            "index": i,
+                            "title": item.get("title", ""),
+                            "pub_date": item.get("pubDate", ""),
+                            "description": item.get("description_clean", "")[:200],
+                            "link": item.get("link", ""),
+                        }
+                    )
+
             else:
+                # 등록되지 않은 기타 도구
                 result = tools_by_name[tool_name].invoke(tool_args)
-            
+
             # ToolMessage 생성
             outputs.append(
                 ToolMessage(
-                    content=str(result)[:500],  # 너무 길면 요약
+                    content=str(result)[:500],  # 너무 길면 앞부분만
                     name=tool_name,
                     tool_call_id=tool_call["id"],
                 )
             )
-        
+
         except Exception as e:
             outputs.append(
                 ToolMessage(
@@ -283,8 +293,16 @@ def call_tools(state: AgentState) -> AgentState:
                     tool_call_id=tool_call["id"],
                 )
             )
-    
-    return {"messages": outputs}
+
+    # 중요: 변경된 상태 필드를 모두 partial state로 반환해야 LangGraph가 merge해준다
+    return {
+        "messages": outputs,
+        "retrieved_docs": state.get("retrieved_docs", []),
+        "financial": state.get("financial"),
+        "news_items": state.get("news_items", []),
+        "data_sources": state["data_sources"],
+    }
+
 
 
 def should_continue(state: AgentState) -> Literal["continue", "generate_answer"]:
@@ -296,7 +314,7 @@ def should_continue(state: AgentState) -> Literal["continue", "generate_answer"]
     iterations = state.get("iterations", 0)
     
     # 최대 반복 횟수 체크
-    if iterations >= 5:
+    if iterations >= 2:
         return "generate_answer"
     
     # 도구 호출이 있으면 계속

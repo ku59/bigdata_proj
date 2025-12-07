@@ -83,6 +83,12 @@ def render_financial_trend(items: List[Dict[str, Any]]) -> None:
 
 
 def render_news_cards(news_items: List[Dict[str, Any]], original_count: Optional[int] = None) -> None:
+    import logging; logging.getLogger(__name__).info(
+        "[render_news_cards] news_items_len=%s", len(news_items) if news_items is not None else None
+    )
+    if not news_items:
+        st.info("표시할 뉴스가 없습니다.")
+        return
     """
     뉴스 결과를 카드 형태로 표시. 각 아이템 필드 예:
     {

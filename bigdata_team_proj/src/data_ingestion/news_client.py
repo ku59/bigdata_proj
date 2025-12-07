@@ -75,24 +75,36 @@ class NaverNewsClient:
             "X-Naver-Client-Id": self.client_id,
             "X-Naver-Client-Secret": self.client_secret,
         }
-
+    
     def search(
         self,
         query: str,
         display: int = 20,
         start: int = 1,
-        sort: str = "sim",  # "sim" | "date"
+        sort: str = "sim",
     ) -> List[Dict[str, Any]]:
-        """네이버 뉴스 원본 검색 결과 반환(가공 없음)."""
+        # 여기부터는 반드시 들여쓰기
         params = {
             "query": query,
             "display": display,
             "start": start,
             "sort": sort,
         }
-        resp = requests.get(self.BASE_URL, headers=self._headers(), params=params, timeout=15)
+        resp = requests.get(
+            self.BASE_URL,
+            headers=self._headers(),
+            params=params,
+            timeout=15,
+        )
+        logger.info(f"[NaverNewsClient.search] status={resp.status_code}")
         resp.raise_for_status()
         data = resp.json()
+        logger.info(
+            "[NaverNewsClient.search] total=%s, len(items)=%s, keys=%s",
+            data.get("total"),
+            len(data.get("items", []) if isinstance(data.get("items"), list) else []),
+            list(data.keys()),
+        )
         return data.get("items", []) or []
 
     def search_dedup(
@@ -111,6 +123,10 @@ class NaverNewsClient:
         4) UI 편의 필드(title_norm, description_clean, canonical_url) 추가
         """
         items = self.search(query=query, display=display, start=start, sort=sort)
+        if not items:
+            return []
+        items = self.search(query=query, display=display, start=start, sort=sort)
+        logger.info("[search_dedup] raw_len=%s", len(items))
         if not items:
             return []
 
